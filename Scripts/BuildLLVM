@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -euo pipefail
+
+WORKSPACE='swiftwasm/build/llvm-tools'
+
+mkdir -p "$WORKSPACE"
+cd "$WORKSPACE"
+
+cmake -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER="${SWIFT_INSTALLATION}/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${SWIFT_INSTALLATION}/bin/clang++" \
+    -DLLVM_TARGETS_TO_BUILD=WebAssembly \
+    -DCMAKE_INSTALL_PREFIX="${SWIFT_INSTALLATION%/*}" \
+    -DLLVM_ENABLE_PROJECTS=lld \
+    -DLLVM_TOOLCHAIN_TOOLS="wasm-ld;llvm-ar;llvm-ranlib;llvm-nm;FileCheck;split-file;not" \
+    ../../llvm-project/llvm
+
+ninja lld llvm-ar llvm-ranlib llvm-nm FileCheck split-file not
+ln -s lld bin/wasm-ld

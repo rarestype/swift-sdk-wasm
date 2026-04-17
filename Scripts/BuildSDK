@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -euo pipefail
+
+NATIVE_TOOLS_SWIFT="${SWIFT_INSTALLATION}/bin"
+NATIVE_TOOLS_LLVM="$(realpath swiftwasm/build/llvm-tools)/bin"
+
+PATH="${NATIVE_TOOLS_LLVM}:${NATIVE_TOOLS_SWIFT}:${PATH}" swiftwasm/swift/utils/build-script \
+    --build-subdir=WebAssembly \
+    --release \
+    --skip-build-llvm \
+    --skip-build-swift \
+    --skip-build-cmark \
+    --skip-build-benchmarks \
+    --skip-early-swift-driver \
+    --wasmkit \
+    --build-wasm-stdlib \
+    --skip-test-wasm-stdlib \
+    --native-swift-tools-path="$NATIVE_TOOLS_SWIFT" \
+    --native-clang-tools-path="$NATIVE_TOOLS_SWIFT" \
+    --native-llvm-tools-path="$NATIVE_TOOLS_LLVM" \
+    --build-runtime-with-host-compiler \
+    --extra-cmake-options="\
+        -DSWIFT_STDLIB_TRACING=NO \
+        -DSWIFT_STDLIB_HAS_ASL=NO \
+        -DSWIFT_STDLIB_CONCURRENCY_TRACING=NO \
+        -DSWIFT_RUNTIME_CRASH_REPORTER_CLIENT=NO \
+        -DSWIFT_STDLIB_INSTALL_PARENT_MODULE_FOR_SHIMS=NO" \
+    --llvm-cmake-options="\
+        -DCROSS_TOOLCHAIN_FLAGS_LLVM_NATIVE='-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++'"

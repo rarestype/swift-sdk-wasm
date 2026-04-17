@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -euo pipefail
+
+echo "checking out tag: ${SWIFT_TAG} with scheme release/${SWIFT_SCHEME}"
+
+git -C swiftwasm/swift checkout "$SWIFT_TAG"
+swiftwasm/swift/utils/update-checkout \
+    --scheme "release/${SWIFT_SCHEME}" \
+    --clone \
+    --reset-to-remote \
+    --match-timestamp \
+    --skip-repository swift

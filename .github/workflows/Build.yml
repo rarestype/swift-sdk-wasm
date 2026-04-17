@@ -1,0 +1,56 @@
+name: Build Swift WebAssembly SDK
+
+on:
+    pull_request:
+        branches: [ master ]
+    workflow_call:
+        inputs:
+            swift-release:
+                description: 'swift toolchain release identifier'
+                required: false
+                type: string
+
+jobs:
+    WebAssembly:
+        runs-on: ubuntu-24.04
+        steps:
+            -   name: 💝 Install Swift 💝
+                uses: rarestype/swift-install-action@v1
+                with:
+                    swift-release: ${{ inputs.swift-release || '6.3-RELEASE' }}
+
+            -   name: 💝 Checkout Swift project 💝
+                uses: actions/checkout@v6
+                with:
+                    repository: swiftlang/swift
+                    path: swiftwasm/swift
+                    fetch-depth: 0
+
+            -   name: 💝 Checkout related repositories 💝
+                run: |
+                    SWIFT_TAG="swift-${{ inputs.swift-release || '6.3-RELEASE' }}"
+
+                    SWIFT_SCHEME="${SWIFT_TAG#swift-}"
+                    SWIFT_SCHEME="${SWIFT_SCHEME%-RELEASE}"
+
+                    SWIFT_SCHEME="$SWIFT_SCHEME" SWIFT_TAG="$SWIFT_TAG" \
+                    Scripts/Checkout
+
+            -   name: 💝 Build LLVM 💝
+                run: Scripts/BuildLLVM
+
+            -   name: 💝 Build Swift WebAssembly SDK 💝
+                run: Scripts/BuildSDK
+
+            -   name: 💝 List files 💝
+                run: |
+                    ls -l swift-sdk-generator
+                    ls -l swift-sdk-generator/Bundles
+
+            -   name: 💝 Upload SDK artifacts 💝
+                uses: actions/upload-artifact@v7
+                with:
+                    name: swift-wasm-sdk-bundle
+                    path: swift-sdk-generator/Bundles/*.artifactbundle.zip
+                    retention-days: 1
+                    compression-level: 0
