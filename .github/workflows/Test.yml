@@ -1,0 +1,11 @@
+name: Test Swift WebAssembly SDK
+
+on:
+    pull_request:
+        branches: [ master ]
+
+jobs:
+    build:
+        uses: ./.github/workflows/Build.yml
+        with:
+            swift-release: 6.3-RELEASE

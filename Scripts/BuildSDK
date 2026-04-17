@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+if [ ! -v SWIFT_TAG ]; then
+    echo "SWIFT_TAG is not set"
+    exit 1
+fi
+
 NATIVE_TOOLS_SWIFT="${SWIFT_INSTALLATION}/bin"
 NATIVE_TOOLS_LLVM="$(realpath swiftwasm/build/llvm-tools)/bin"
 
@@ -28,3 +33,36 @@ PATH="${NATIVE_TOOLS_LLVM}:${NATIVE_TOOLS_SWIFT}:${PATH}" swiftwasm/swift/utils/
         -DSWIFT_STDLIB_INSTALL_PARENT_MODULE_FOR_SHIMS=NO" \
     --llvm-cmake-options="\
         -DCROSS_TOOLCHAIN_FLAGS_LLVM_NATIVE='-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++'"
+
+bundles='swiftwasm/swift-sdk-generator/Bundles'
+build='swiftwasm/build/WebAssembly'
+swift build -c release --package-path swiftwasm/swift-sdk-generator \
+    --product swift-sdk-generator
+cp swiftwasm/swift-sdk-generator/.build/release/swift-sdk-generator "$build"
+
+# throw away the bundle that was built by default
+rm -rf "$bundles"
+
+for variant in wasip1 wasip1-threads; do
+    "${build}/swift-sdk-generator" make-wasm-sdk \
+        --target-swift-package-path \
+            "${build}/wasmswiftsdk-linux-$(uname -m)/Toolchains/wasm32-unknown-${variant}" \
+        --wasi-sysroot \
+            "${build}/wasi-sysroot/wasm32-${variant}/sysroot" \
+        --target "wasm32-unknown-${variant}" \
+        --swift-version "$SWIFT_TAG" \
+        --sdk-name "${SWIFT_TAG#swift-}-wasm32-unknown-${variant}"
+done
+
+# package artifact bundles
+rm -r swift-sdk-bundles
+mkdir swift-sdk-bundles
+for bundle in "$bundles"/*; do
+    bundle_name="${bundle##*/}"
+    (
+        cp -r "$bundle" "swift-sdk-bundles/${bundle_name}"
+        cd swift-sdk-bundles
+        zip -rq "${bundle_name}.zip" "$bundle_name"
+        rm -r "$bundle_name"
+    )
+done

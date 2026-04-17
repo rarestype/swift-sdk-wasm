@@ -1,0 +1,32 @@
+name: Publish Swift WebAssembly SDK
+
+on:
+    workflow_dispatch:
+        inputs:
+            swift-release:
+                description: 'swift toolchain release identifier'
+                required: true
+                type: string
+
+jobs:
+    build:
+        uses: ./.github/workflows/Build.yml
+        with:
+            swift-release: ${{ inputs.swift-release }}
+
+    publish:
+        runs-on: ubuntu-24.04-arm
+        needs: build
+        steps:
+            -   name: 💝 Download bundles 💝
+                uses: actions/download-artifact@v7
+                with:
+                    name: swift-sdk-bundles
+                    path: release-artifacts
+
+            -   name: 💝 Create GitHub release 💝
+                uses: softprops/action-gh-release@v2
+                id: create_release
+                with:
+                    files: release-artifacts/*.zip
+                    generate_release_notes: true

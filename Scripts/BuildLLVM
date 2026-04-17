@@ -18,4 +18,3 @@ cmake -G Ninja \
     ../../llvm-project/llvm
 
 ninja lld llvm-ar llvm-ranlib llvm-nm FileCheck split-file not
-ln -s lld bin/wasm-ld
