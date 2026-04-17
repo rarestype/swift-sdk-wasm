@@ -19,6 +19,9 @@ jobs:
                 with:
                     swift-release: ${{ inputs.swift-release || '6.3-RELEASE' }}
 
+            -   name: 💝 Checkout 💝
+                uses: actions/checkout@v6
+
             -   name: 💝 Checkout Swift project 💝
                 uses: actions/checkout@v6
                 with:
