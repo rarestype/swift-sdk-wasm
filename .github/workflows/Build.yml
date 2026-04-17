@@ -1,13 +1,11 @@
 name: Build Swift WebAssembly SDK
 
 on:
-    pull_request:
-        branches: [ master ]
     workflow_call:
         inputs:
             swift-release:
                 description: 'swift toolchain release identifier'
-                required: false
+                required: true
                 type: string
 
 jobs:
@@ -17,7 +15,7 @@ jobs:
             -   name: 💝 Install Swift 💝
                 uses: rarestype/swift-install-action@v1
                 with:
-                    swift-release: ${{ inputs.swift-release || '6.3-RELEASE' }}
+                    swift-release: ${{ inputs.swift-release }}
 
             -   name: 💝 Checkout 💝
                 uses: actions/checkout@v6
@@ -30,30 +28,26 @@ jobs:
                     fetch-depth: 0
 
             -   name: 💝 Checkout related repositories 💝
-                run: |
-                    SWIFT_TAG="swift-${{ inputs.swift-release || '6.3-RELEASE' }}"
-
-                    SWIFT_SCHEME="${SWIFT_TAG#swift-}"
-                    SWIFT_SCHEME="${SWIFT_SCHEME%-RELEASE}"
-
-                    SWIFT_SCHEME="$SWIFT_SCHEME" SWIFT_TAG="$SWIFT_TAG" \
-                    Scripts/Checkout
+                run: Scripts/Checkout
+                env:
+                    SWIFT_TAG: "swift-${{ inputs.swift-release }}"
 
             -   name: 💝 Build LLVM 💝
                 run: Scripts/BuildLLVM
 
             -   name: 💝 Build Swift WebAssembly SDK 💝
                 run: Scripts/BuildSDK
+                env:
+                    SWIFT_TAG: "swift-${{ inputs.swift-release }}"
 
-            -   name: 💝 List files 💝
+            -   name: 💝 List bundles 💝
                 run: |
-                    ls -l swift-sdk-generator
-                    ls -l swift-sdk-generator/Bundles
+                    ls -l swift-sdk-bundles
 
-            -   name: 💝 Upload SDK artifacts 💝
+            -   name: 💝 Upload bundles 💝
                 uses: actions/upload-artifact@v7
                 with:
-                    name: swift-wasm-sdk-bundle
-                    path: swift-sdk-generator/Bundles/*.artifactbundle.zip
+                    name: swift-sdk-bundles
+                    path: swift-sdk-bundles/*.artifactbundle.zip
                     retention-days: 1
                     compression-level: 0
