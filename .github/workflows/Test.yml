@@ -1,4 +1,4 @@
-name: Test Swift WebAssembly SDK
+name: Tests
 
 on:
     pull_request:

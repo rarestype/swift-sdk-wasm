@@ -1,4 +1,4 @@
-name: Publish Swift WebAssembly SDK
+name: Deploy
 
 permissions:
     contents: write
