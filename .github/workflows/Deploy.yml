@@ -20,7 +20,7 @@ jobs:
         runs-on: ubuntu-24.04-arm
         needs: build
         env:
-            TAG: "swift-${{ inputs.swift-release }}"
+            SWIFT_TAG: "swift-${{ inputs.swift-release }}"
         steps:
             -   name: 💝 Checkout 💝
                 uses: actions/checkout@v6
@@ -35,33 +35,45 @@ jobs:
                 run: |
                     download="https://github.com/${{ github.repository }}/releases/download"
                     notes="notes.md"
+                    notes_footer="notes_footer.md"
 
-                    echo "| ✰&nbsp; bundle | checksum |" > "$notes"
-                    echo "| -------------- | -------- |" >> "$notes"
+                    echo "| bundle | checksum |" > "$notes"
+                    echo "| ------ | -------- |" >> "$notes"
+
+                    echo "" > "$notes_footer"
 
                     for zip in release-artifacts/*.zip; do
                         zip_file="${zip##*/}"
                         zip_checksum=$(sha256sum "$zip" | cut -d ' ' -f 1)
 
-                        bundle_url="${download}/${TAG}/${zip_file}"
+                        bundle_url="${download}/${SWIFT_TAG}/${zip_file}"
                         bundle_name="${zip_file%.artifactbundle.zip}"
                         bundle_name="${bundle_name#*-wasm32-unknown-}"
 
-                        echo "| [❥ \`${bundle_name}\`](${bundle_url}) | \`${zip_checksum}\` |" \
+                        echo "| [\`${bundle_name}\`](${bundle_url}) | \`${zip_checksum}\` |" \
                             >> "$notes"
+
+                        echo "" >> "$notes_footer"
+                        echo "### ✰ ${zip_file%.artifactbundle.zip}" >> "$notes_footer"
+                        echo '```' >> "$notes_footer"
+                        echo "swift sdk install \"${bundle_url}\" --checksum ${zip_checksum}" \
+                            >> "$notes_footer"
+                        echo '```' >> "$notes_footer"
                     done
+
+                    cat "$notes_footer" >> "$notes"
 
             -   name: 💝 Release 💝
                 run: |
                     git config user.name "rarest automation"
                     git config user.email "automation@noreply.rarestype.com"
 
-                    git tag -f "$TAG"
-                    git push -f origin "$TAG"
+                    git tag -f "$SWIFT_TAG"
+                    git push -f origin "$SWIFT_TAG"
 
-                    gh release delete "$TAG" --cleanup-tag --yes || true
-                    gh release create "$TAG" release-artifacts/*.zip \
-                        --title "${{ inputs.swift-release }}" \
+                    gh release delete "$SWIFT_TAG" --cleanup-tag --yes || true
+                    gh release create "$SWIFT_TAG" release-artifacts/*.zip \
+                        --title "${{ inputs.swift-release }} ✰" \
                         --notes-file notes.md
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
