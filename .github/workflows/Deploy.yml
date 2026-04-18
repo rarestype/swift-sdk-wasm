@@ -19,6 +19,8 @@ jobs:
     publish:
         runs-on: ubuntu-24.04-arm
         needs: build
+        env:
+            TAG: "swift-${{ inputs.swift-release }}"
         steps:
             -   name: 💝 Checkout 💝
                 uses: actions/checkout@v6
@@ -31,24 +33,28 @@ jobs:
 
             -   name: 💝 Generate notes 💝
                 run: |
+                    download="https://github.com/${{ github.repository }}/releases/download"
                     notes="notes.md"
 
-                    echo "| Bundle | Checksum |" > "$notes"
-                    echo "| ------ | -------- |" >> "$notes"
+                    echo "| ✰&nbsp; bundle | checksum |" > "$notes"
+                    echo "| -------------- | -------- |" >> "$notes"
 
                     for zip in release-artifacts/*.zip; do
-                        bundle="${zip%.artifactbundle.zip}"
-                        checksum=$(sha256sum "$zip" | cut -d ' ' -f 1)
+                        zip_file="${zip##*/}"
+                        zip_checksum=$(sha256sum "$zip" | cut -d ' ' -f 1)
 
-                        echo "| \`${bundle##*/}\` | \`${checksum}\` |" >> "$notes"
+                        bundle_url="${download}/${TAG}/${zip_file}"
+                        bundle_name="${zip_file%.artifactbundle.zip}"
+                        bundle_name="${bundle_name#*-wasm32-unknown-}"
+
+                        echo "| [❥ \`${bundle_name}\`](${bundle_url}) | \`${zip_checksum}\` |" \
+                            >> "$notes"
                     done
 
             -   name: 💝 Release 💝
                 run: |
                     git config user.name "rarest automation"
                     git config user.email "automation@noreply.rarestype.com"
-
-                    TAG="swift-${{ inputs.swift-release }}"
 
                     git tag -f "$TAG"
                     git push -f origin "$TAG"
