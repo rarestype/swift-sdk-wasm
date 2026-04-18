@@ -8,4 +8,4 @@ jobs:
     build:
         uses: ./.github/workflows/Build.yml
         with:
-            swift-release: 6.3-RELEASE
+            swift-release: 6.3.1-RELEASE

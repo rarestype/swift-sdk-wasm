@@ -24,9 +24,18 @@ jobs:
                     name: swift-sdk-bundles
                     path: release-artifacts
 
+            -   name: 💝 Create tag 💝
+                run: |
+                    git config user.name "rarest automation"
+                    git config user.email "automation@noreply.rarestype.com"
+
+                    git tag -f "swift-${{ inputs.swift-release }}"
+                    git push -f origin "swift-${{ inputs.swift-release }}"
+
             -   name: 💝 Create GitHub release 💝
                 uses: softprops/action-gh-release@v2
                 id: create_release
                 with:
                     files: release-artifacts/*.zip
                     generate_release_notes: true
+                    tag_name: "swift-${{ inputs.swift-release }}"

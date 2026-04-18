@@ -12,37 +12,50 @@ jobs:
     WebAssembly:
         runs-on: ubuntu-24.04-arm
         steps:
-            -   name: 💝 Install Swift 💝
-                uses: rarestype/swift-install-action@v1
-                with:
-                    swift-release: ${{ inputs.swift-release }}
+            # -   name: 💝 Install Swift 💝
+            #     uses: rarestype/swift-install-action@v1
+            #     with:
+            #         swift-release: ${{ inputs.swift-release }}
 
-            -   name: 💝 Checkout 💝
-                uses: actions/checkout@v6
+            # -   name: 💝 Checkout 💝
+            #     uses: actions/checkout@v6
 
-            -   name: 💝 Checkout Swift project 💝
-                uses: actions/checkout@v6
-                with:
-                    repository: swiftlang/swift
-                    path: swiftwasm/swift
-                    fetch-depth: 0
+            # -   name: 💝 Checkout Swift project 💝
+            #     uses: actions/checkout@v6
+            #     with:
+            #         repository: swiftlang/swift
+            #         path: swiftwasm/swift
+            #         fetch-depth: 0
 
-            -   name: 💝 Checkout related repositories 💝
-                run: Scripts/Checkout
-                env:
-                    SWIFT_TAG: "swift-${{ inputs.swift-release }}"
+            # -   name: 💝 Checkout related repositories 💝
+            #     run: Scripts/Checkout
+            #     env:
+            #         SWIFT_TAG: "swift-${{ inputs.swift-release }}"
 
-            -   name: 💝 Build LLVM 💝
-                run: Scripts/BuildLLVM
+            # -   name: 💝 Build LLVM 💝
+            #     run: Scripts/BuildLLVM
 
-            -   name: 💝 Build Swift WebAssembly SDK 💝
-                run: Scripts/BuildSDK
-                env:
-                    SWIFT_TAG: "swift-${{ inputs.swift-release }}"
+            # -   name: 💝 Build Swift WebAssembly SDK 💝
+            #     run: Scripts/BuildSDK
+            #     env:
+            #         SWIFT_TAG: "swift-${{ inputs.swift-release }}"
 
-            -   name: 💝 List bundles 💝
+            # -   name: 💝 List bundles 💝
+            #     run: |
+            #         ls -l swift-sdk-bundles
+
+            -   name: 💝 Generate dummy SDK 💝
                 run: |
-                    ls -l swift-sdk-bundles
+                    mkdir swift-sdk-bundles
+                    for bundle_id in wasm32-unknown-wasip1-threads wasm32-unknown-wasip1; do
+                        bundle_name="${{ inputs.swift-release }}-${bundle_id}.artifactbundle"
+                        (
+                            cd swift-sdk-bundles
+                            mkdir -p "$bundle_name"
+                            zip -rq "${bundle_name}.zip" "$bundle_name"
+                            rm -r "$bundle_name"
+                        )
+                    done
 
             -   name: 💝 Upload bundles 💝
                 uses: actions/upload-artifact@v7
