@@ -53,9 +53,9 @@ jobs:
                     git tag -f "$TAG"
                     git push -f origin "$TAG"
 
+                    gh release delete "$TAG" --cleanup-tag --yes || true
                     gh release create "$TAG" release-artifacts/*.zip \
                         --title "${{ inputs.swift-release }}" \
-                        --notes-file notes.md \
-                        --clobber
+                        --notes-file notes.md
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
