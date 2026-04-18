@@ -1,5 +1,7 @@
 name: Publish Swift WebAssembly SDK
 
+permissions:
+    contents: write
 on:
     workflow_dispatch:
         inputs:
@@ -27,20 +29,33 @@ jobs:
                     name: swift-sdk-bundles
                     path: release-artifacts
 
-            -   name: 💝 Create tag 💝
+            -   name: 💝 Generate notes 💝
+                run: |
+                    notes="notes.md"
+
+                    echo "| Bundle | Checksum |" > "$notes"
+                    echo "| ------ | -------- |" >> "$notes"
+
+                    for zip in release-artifacts/*.zip; do
+                        bundle="${zip%.artifactbundle.zip}"
+                        checksum=$(sha256sum "$zip" | cut -d ' ' -f 1)
+
+                        echo "| \`${bundle##*/}\` | \`${checksum}\` |" >> "$notes"
+                    done
+
+            -   name: 💝 Release 💝
                 run: |
                     git config user.name "rarest automation"
                     git config user.email "automation@noreply.rarestype.com"
 
-                    git tag -f "swift-${{ inputs.swift-release }}"
-                    git push -f origin "swift-${{ inputs.swift-release }}"
+                    TAG="swift-${{ inputs.swift-release }}"
+
+                    git tag -f "$TAG"
+                    git push -f origin "$TAG"
+
+                    gh release create "$TAG" release-artifacts/*.zip \
+                        --title "${{ inputs.swift-release }}" \
+                        --notes-file notes.md \
+                        --clobber
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            -   name: 💝 Create release 💝
-                uses: softprops/action-gh-release@v2
-                id: create_release
-                with:
-                    files: release-artifacts/*.zip
-                    generate_release_notes: true
-                    tag_name: "swift-${{ inputs.swift-release }}"
