@@ -55,7 +55,7 @@ for variant in wasip1 wasip1-threads; do
 done
 
 # package artifact bundles
-rm -r swift-sdk-bundles
+rm -rf swift-sdk-bundles
 mkdir swift-sdk-bundles
 for bundle in "$bundles"/*; do
     bundle_name="${bundle##*/}"
