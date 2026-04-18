@@ -21,7 +21,7 @@ jobs:
             -   name: 💝 Checkout 💝
                 uses: actions/checkout@v6
 
-            -   name: 💝 Download bundles 💝
+            -   name: 💝 Download 💝
                 uses: actions/download-artifact@v7
                 with:
                     name: swift-sdk-bundles
@@ -34,8 +34,10 @@ jobs:
 
                     git tag -f "swift-${{ inputs.swift-release }}"
                     git push -f origin "swift-${{ inputs.swift-release }}"
+                env:
+                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            -   name: 💝 Create GitHub release 💝
+            -   name: 💝 Create release 💝
                 uses: softprops/action-gh-release@v2
                 id: create_release
                 with:
