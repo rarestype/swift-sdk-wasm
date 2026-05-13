@@ -2,12 +2,19 @@
 
 set -euo pipefail
 
+git -C swiftwasm/swift checkout "$SWIFT_TAG"
+
+MANIFEST="swiftwasm/swift/utils/update_checkout/update-checkout-config.json"
 SWIFT_SCHEME="${SWIFT_TAG#swift-}"
 SWIFT_SCHEME="${SWIFT_SCHEME%-RELEASE}"
 
+if ! jq -e ".[\"branch-schemes\"] | has(\"release/${SWIFT_SCHEME}\")" "$MANIFEST"; then
+    echo "Scheme '${SWIFT_SCHEME}' not found in config, falling back to minor version..."
+    SWIFT_SCHEME="${SWIFT_SCHEME%.*}"
+fi
+
 echo "checking out tag: ${SWIFT_TAG} with scheme release/${SWIFT_SCHEME}"
 
-git -C swiftwasm/swift checkout "$SWIFT_TAG"
 swiftwasm/swift/utils/update-checkout \
     --scheme "release/${SWIFT_SCHEME}" \
     --clone \
