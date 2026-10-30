@@ -9,12 +9,17 @@ on:
                 description: 'swift toolchain release identifier'
                 required: true
                 type: string
+            swift-overlay:
+                description: 'rarestype/swift release to build with, such as 6.4.1-RELEASE-81bd22795'
+                required: true
+                type: string
 
 jobs:
     build:
         uses: ./.github/workflows/Build.yml
         with:
             swift-release: ${{ inputs.swift-release }}
+            swift-overlay: ${{ inputs.swift-overlay }}
 
     publish:
         runs-on: ubuntu-24.04-arm
@@ -60,6 +65,10 @@ jobs:
                             >> "$notes_footer"
                         echo '```' >> "$notes_footer"
                     done
+
+                    overlay="https://github.com/rarestype/swift/releases/tag/swift-${{ inputs.swift-overlay }}"
+                    echo "" >> "$notes"
+                    echo "Built with [rarestype/swift ${{ inputs.swift-overlay }}](${overlay})." >> "$notes"
 
                     cat "$notes_footer" >> "$notes"
 
