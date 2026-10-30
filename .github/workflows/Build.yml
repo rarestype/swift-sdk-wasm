@@ -7,6 +7,10 @@ on:
                 description: 'swift toolchain release identifier'
                 required: true
                 type: string
+            swift-overlay:
+                description: 'rarestype/swift release built for it, such as 6.4.1-RELEASE-81bd22795'
+                required: true
+                type: string
 
 jobs:
     WebAssembly:
@@ -16,6 +20,7 @@ jobs:
                 uses: rarestype/swift-install-action@v1
                 with:
                     swift-release: ${{ inputs.swift-release }}
+                    swift-overlay: ${{ inputs.swift-overlay }}
 
             -   name: 💝 Checkout 💝
                 uses: actions/checkout@v6
@@ -31,6 +36,7 @@ jobs:
                 run: Scripts/Checkout
                 env:
                     SWIFT_TAG: "swift-${{ inputs.swift-release }}"
+                    SWIFT_OVERLAY: ${{ inputs.swift-overlay }}
 
             -   name: 💝 Build LLVM 💝
                 run: Scripts/BuildLLVM

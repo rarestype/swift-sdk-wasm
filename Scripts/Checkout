@@ -21,3 +21,24 @@ swiftwasm/swift/utils/update-checkout \
     --reset-to-remote \
     --match-timestamp \
     --skip-repository swift
+
+# The standard library is compiled with the compiler from the rarestype/swift release in
+# $SWIFT_OVERLAY, so it gets the same upstream commits that release cherry-picked.
+: "${SWIFT_OVERLAY:?}"
+RELEASE="${SWIFT_OVERLAY%-*}"
+PINS=$(mktemp)
+curl -fsSL -o "$PINS" \
+    "https://raw.githubusercontent.com/rarestype/swift/swift-${SWIFT_OVERLAY}/Releases/${RELEASE}"
+source "$PINS"
+
+while read -r repository commit; do
+    if [[ -z "$repository" ]]; then
+        continue
+    fi
+    git -C "swiftwasm/$repository" fetch --quiet origin "$commit"
+    git -C "swiftwasm/$repository" \
+        -c user.name="rarest automation" \
+        -c user.email="automation@noreply.rarestype.com" \
+        cherry-pick -x "$commit"
+    echo "cherry-picked swiftlang/${repository}@${commit}"
+done <<< "${PATCHES:-}"

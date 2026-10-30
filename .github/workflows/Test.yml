@@ -9,3 +9,4 @@ jobs:
         uses: ./.github/workflows/Build.yml
         with:
             swift-release: 6.4.1-RELEASE
+            swift-overlay: 6.4.1-RELEASE-81bd22795
